@@ -118,9 +118,16 @@ int main(void)
       MPU6050_Read_Gyro();
       MPU6050_Read_Accel();
       MPU6050_Read_Gyro();
+
+      // Yaw轴 直接读取陀螺仪数据
+
       Yaw = Yaw + Gz * 0.08;
+
       Pitch_a = -atan2(Ay, Az) / 3.14 * 180;
-      Pitch_g = Pitch + Gy * 0.008;
+      Pitch_g = Pitch + Gy * 0.0005;
+
+      // Pitch轴 互补滤波法滤波
+
       Pitch = 0.001 * Pitch_a + 0.999 * Pitch_g;
       CCR1 = (Pitch / 36.0 + 7.5) / 100.0;
       CCR2 = (Yaw / 36.0 + 7.5) / 100.0;
@@ -142,8 +149,6 @@ int main(void)
 
       int crr2 = CCR2 * ARR;
       __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, crr2);
-
-      HAL_Delay(5);
     }
     /* USER CODE BEGIN 3 */
   }
