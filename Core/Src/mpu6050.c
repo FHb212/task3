@@ -16,7 +16,7 @@ void MPU6050_Init(void)
     uint8_t Data;
     HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, WHO_AM_I_REG, 1, &check, 1, 1000);
 
-    if (check == 0x68)
+    if (check == 0x68) // 初始化陀螺仪
     {
         Data = 0x01;
         HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, PWR_MEMT_1_REG, 1, &Data, 1, 1000);
@@ -56,7 +56,7 @@ void MPU6050_Read_Gyro(void)
     Gyro_X_RAW = (int16_t)(Rec_Data[0] << 8 | Rec_Data[1]);
     Gyro_Y_RAW = (int16_t)(Rec_Data[2] << 8 | Rec_Data[3]);
     Gyro_Z_RAW = (int16_t)(Rec_Data[4] << 8 | Rec_Data[5]);
-    Gx = Gyro_X_RAW / 16.4 + 1; // 除16.4打出来为-1
-    Gy = Gyro_Y_RAW / 16.4 + 1;
-    Gz = Gyro_Z_RAW / 16.4 + 1;
+    Gx = Gyro_X_RAW / 16.4;
+    Gy = Gyro_Y_RAW / 16.4;
+    Gz = Gyro_Z_RAW / 16.4 + 1; // 除16.4打出来为-1,这个陀螺仪貌似有问题
 }

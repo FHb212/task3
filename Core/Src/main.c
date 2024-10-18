@@ -94,7 +94,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_USART1_UART_Init();
-  HAL_Delay(20);
+  HAL_Delay(10);
   MPU6050_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
@@ -102,7 +102,7 @@ int main(void)
   float Yaw, Pitch;
   float Pitch_a, Pitch_g;
   int ARR = 45000;
-  float CCR1, CCR2;
+  float CRR1, CRR2;
 
   /* USER CODE END 2 */
 
@@ -120,34 +120,29 @@ int main(void)
       MPU6050_Read_Gyro();
 
       // Yaw轴 直接读取陀螺仪数据
-
-      Yaw = Yaw + Gz * 0.08;
-
+      Yaw = Yaw + (int)Gz * 0.003; // 陀螺仪的问题这里调整了角度计算
       Pitch_a = -atan2(Ay, Az) / 3.14 * 180;
-      Pitch_g = Pitch + Gy * 0.0005;
-
+      Pitch_g = Pitch + Gx * 0.005;
       // Pitch轴 互补滤波法滤波
 
-      Pitch = 0.001 * Pitch_a + 0.999 * Pitch_g;
-      CCR1 = (Pitch / 36.0 + 7.5) / 100.0;
-      CCR2 = (Yaw / 36.0 + 7.5) / 100.0;
+      Pitch = 0.1 * Pitch_a + 0.9 * Pitch_g;
+      CRR2 = (Pitch / 18.0 + 7.5) / 100.0;
+      CRR1 = (Yaw / 18.0 + 7.5) / 100.0;
 
-      // CCR1 检查和设置
-      if (CCR1 < 0.025)
-        CCR1 = 0.025;
-      else if (CCR1 > 0.125)
-        CCR1 = 0.125;
-
-      int crr1 = CCR1 * ARR;
+      // int err1=Yaw/90;
+      // CRR1=CRR1+k*err1;貌似这个更符合动态调整一些，
+      CRR1 = 0.15 - CRR1;
+      CRR2 = 0.15 - CRR2; // 直接取反了这里
+      int crr1 = CRR1 * ARR;
       __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, crr1);
 
-      // CCR2 检查和设置
-      if (CCR2 < 0.025)
-        CCR2 = 0.025;
-      else if (CCR2 > 0.125)
-        CCR2 = 0.125;
+      // CRR2 检查和设置
+      if (CRR2 < 0.025)
+        CRR2 = 0.025;
+      else if (CRR2 > 0.125)
+        CRR2 = 0.125;
 
-      int crr2 = CCR2 * ARR;
+      int crr2 = CRR2 * ARR;
       __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, crr2);
     }
     /* USER CODE BEGIN 3 */
